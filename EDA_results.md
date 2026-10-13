@@ -46,11 +46,13 @@ Repeated annotation keys are expected. Removing them as duplicates would lose sc
 
 ### 2.2 Score codes, sizes and boxes
 
-All checked score codes are allowed. All diameters are positive, and numeric values contain no NaN or infinity.
+All checked codes are allowed, diameters are positive, and numeric values have no NaN or infinity.
 
-In the nodule table, **22 rows** have reversed X and Y box bounds, and **2 rows** have equal Z bounds. The annotation table has **86 rows** with reversed X/Y bounds and **7** with equal Z bounds.
+**22 nodules** have reversed X/Y bounds. The **86 flagged annotation rows** describe the same 22 nodules. All 22 VOIs have RAS voxel-axis directions. After converting the box corners back to voxel coordinates, their Low/High order is correct.
 
-These boxes need review before use. The checks flag unusual bounds; they do not prove that the records are wrong.
+This suggests that the Low/High names follow voxel order while the saved coordinates in mm run in the opposite direction. It is not evidence of 22 invalid boxes, and RAS does not always imply reversed bounds. The export code is unavailable, so the exact creation process is not confirmed.
+
+**2 nodule rows and 7 annotation rows** have equal Z bounds and still need review before cropping. Keep the flagged rows; do not remove them based on these checks alone.
 
 ### 2.3 Available and missing files
 
@@ -239,19 +241,19 @@ These are group differences, not proof that the new features improve predictions
 
 IDs, `Diagnosis`, `Malignancy_value` and voting details are not inputs in `X`. Raw volume is kept for analysis, but this feature table uses its log version. Some features describe similar information; choose which to keep using training data only.
 
-## 7. Is the dataset ready?
+## 7. What did we learn?
 
-**Ready for EDA. Models still need a patient split and input preparation.**
+The EDA found useful patterns that help us choose features and next tasks:
 
-| Task | Status | Main point |
-|---|---|---|
-| Data analysis | Ready | 996 metadata rows and 994 image-mask pairs. |
-| ML prediction | Needs setup | 994 rows, 11 features; split by patient and fit scaling on training data only. |
-| VOI segmentation | Needs preparation | Review 35 masks with separate parts; standardize image and mask inputs. |
-| 3D image classification | Needs preparation | VOI sizes, spacing and axis directions differ. |
-| Full CT detection | Not ready locally | Only 3 full CT scans; more scans and checked nodule locations are needed. |
+| Finding | What it tells us |
+|---|---|
+| Mean diameter is 13.28 mm for Malign vs 6.25 mm for Benign. Mean mask volume is 2,541.27 vs 281.94 mm3. | Size is a useful candidate feature for prediction, although the groups overlap. |
+| Higher `Spiculation` and `Lobulation` scores are more common in the Malign group. | Shape-related scores may add information beyond size. Their value for prediction still needs testing. |
+| Most top positive correlations are between center and box coordinates. | They repeat location information, rather than showing independent cancer-related patterns. |
+| Only 136 nodules have identical scores across records; 142 have a score gap of at least 3. | A final label hides disagreement. Prediction will learn score-based labels. |
+| All 994 available image-mask pairs align, but 35 masks have separate parts. | VOI segmentation experiments are possible after preprocessing and mask review. |
 
-`Diagnosis` comes from score votes. The current feature model also needs nodule masks when predicting.
+**Next tasks:** feature prediction and 3D image classification need a patient split and prepared inputs. The current feature table also needs masks when predicting. Full CT detection needs more scans; only three are available locally.
 
 ## 8. Next plan
 
