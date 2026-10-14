@@ -155,54 +155,36 @@ Both distributions have a tail toward large diameters. The Benign group has stro
 At 10 mm, the within-group percentages are very different, but the distributions still overlap. This is an example for understanding the data, not a chosen prediction cutoff. Large sizes are not automatically data errors.
 
 ## 4. Annotation and label analysis
+A nodule can have several score records. We check how these scores produce the label and how much they differ.
 
-### 4.1 Labels and record counts
+**Label rule:** at least two records with `Malignancy_value > 3` means `Malign`. Otherwise, the label is `Benign`.
+For example, scores **1, 2, 5, 4** give `Malign` because **5 and 4** are above 3, even though the other two scores are low.
 
-The rule is: label a nodule `Malign` when **at least two records have `Malignancy_value > 3`**; otherwise label it `Benign`.
+Match records using `patient_id`, `nodule_id` and `seriesuid` so different scans stay separate.
 
-All **996 nodules** have matching score groups. There are **0 label mismatches** and **0 mismatches with `len_mal_details`**.
+**Results**
 
-The tables agree with the stated rule. This checks how the labels were built, not whether each nodule is truly cancer.
+- All **996 nodules** have score records. There are **0 label mismatches** and **0 record-count mismatches** with `len_mal_details`.
+- The annotation table has **997 groups**. One extra group has **4 records** for **LIDC-IDRI-0332, nodule 1**, in another CT series, and is absent from the nodule table.
+- **136 nodules (13.7%)** have identical scores. **142 (14.3%)** have a gap of at least 3 points between their lowest and highest scores.
 
-### 4.2 Extra score group
-
-One extra group contains **four records** for **LIDC-IDRI-0332, nodule 1**, in another CT series. It is absent from the main nodule table.
-
-This explains the 997 groups versus 996 listed nodules. Including `seriesuid` when matching records keeps different scans apart.
-
-### 4.3 Score differences
-
-**136 nodules (13.7%)** have identical scores across records. **142 (14.3%)** have a gap of at least three points between the lowest and highest scores.
-
-For example, `LIDC-IDRI-0141`, nodule 1 has scores **1, 2, 5 and 4**. Two are above 3, so its label is `Malign` despite the disagreement. One final label hides these score differences.
+The saved labels follow the voting rule, but one final label does not show the differences between score records. The labels are based on assessments, not confirmed tissue-test results.
 
 ## 5. Image and mask analysis
 
-### 5.1 Read images and masks
+### 5.1 File checks and image sizes
 
-All **994 available image-mask pairs** pass the checks used for image analysis. Each pair matches in array shape and spatial position. All available images contain finite values.
+There are **994 usable pairs** and **two masks without images**. All 996 masks are nonempty, binary and finite. **35 masks have separate parts** and need review; matching shape and position does not prove every outline is correct.
 
-This lets us compare values inside and outside each mask. The two masks without images can still be checked as masks, but cannot provide image-value measurements.
+VOIs have **2-62 slices** and **3,698-352,000 voxels**. Median spacing is **0.70 x 0.70 x 1.25 mm**; Z spacing is the distance between slices. There are **972 LPS** and **22 RAS** images, so model inputs need a common preparation rule.
 
-### 5.2 Image sizes, spacing and masks
+### 5.2 View the masks
 
-VOIs have **2–62 slices**, and their spacing differs. There are **972 LPS** and **22 RAS** images: their stored axis directions differ. The previews turn them to the same directions.
+The notebook shows one example per label, using the slice with the largest mask area. The orange outline marks the nodule. These examples do not check every mask.
 
-All **996 masks** are nonempty, contain only 0 and 1, and have no NaN or infinity. **35 masks** contain more than one connected part. Parts count as connected when voxels touch at a face, edge or corner.
+### 5.3 Compare the groups
 
-The median mask volume is **235.91 mm³**, while the mean is **1,068.58 mm³**. A few large nodules raise the mean. For `LIDC-IDRI-0179_R_9`, only **73.4%** of mask voxels belong to the largest part, so it deserves a closer look.
-
-Matching shape and position does not prove every mask outline is correct. Review separate parts before removing them.
-
-### 5.3 View nodules and masks
-
-The notebook shows one example from each label group and one mask with separate parts. It displays the slice containing the largest mask area, with a colored mask overlay.
-
-`LIDC-IDRI-0069_R_1` has **two parts in 3D**. One slice may not show both. The examples help us understand the files; they do not check every mask.
-
-### 5.4 Compare volume and image values
-
-This comparison uses **650 Benign** and **344 Malign** image-mask pairs. Each nodule contributes one set of measurements.
+Each of the **650 Benign** and **344 Malign** nodules contributes one set of measurements.
 
 | Mean measurement | Benign | Malign |
 |---|---:|---:|
@@ -211,9 +193,7 @@ This comparison uses **650 Benign** and **344 Malign** image-mask pairs. Each no
 | `inside_std` | 282.25 | 253.65 |
 | `outside_mean` | -655.61 | -663.16 |
 
-The Malign group has larger mask volumes on average. Its average value inside the mask is also higher, meaning less negative. The groups still overlap, so these measurements do not give a clear label cutoff.
-
-`inside_std` measures how much image values vary inside a nodule. `outside_mean` describes nearby tissue inside the VOI but outside the mask; its group averages are close. These are stored image values: their HU units have not been verified in the notebook.
+Volume uses mask voxel count and spacing. Inside values come from the nodule; outside values come from nearby tissue within the VOI. The Malign group is larger on average, but measurements overlap. Image-value units have not been confirmed as HU.
 
 ## 6. Feature engineering
 
