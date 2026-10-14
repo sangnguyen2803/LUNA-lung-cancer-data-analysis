@@ -95,7 +95,7 @@ These labels describe the dataset's voting rule, not confirmed tissue-test resul
 | Mean | 6.25 | 13.28 |
 | Median | 5.74 | 12.46 |
 
-Overall, diameters range from **3.25 to 32.27 mm**, with a median of **6.77 mm**. The IQR rule flags **66 nodules** as unusually sized.
+Overall, diameters range from **3.25 to 32.27 mm**, with a median of **6.77 mm**. The IQR rule flags **66 large nodules above 18.26 mm: 63 Malign and 3 Benign**.
 
 The Malign group is larger on average, but the groups overlap. A large nodule is not automatically Malign, and an IQR flag is a reason to review a row rather than delete it.
 
@@ -120,16 +120,41 @@ IDs are identifiers, and some numeric columns are category codes. A larger categ
 
 ### 3.4 Features by diagnosis
 
-- `Spiculation_value = 1`: **94.6% of Benign** versus **57.5% of Malign** nodules. Higher scores are more common in the Malign group.
-- `Lobulation_value = 1`: **86.8% versus 50.0%**. Higher scores are also more common in the Malign group.
-- `Texture_value = 5`: **84.9% versus 78.3%**. This value is common in both groups.
-- `Sphericity` values overlap across the groups.
-- `Calcification_value = 6`: **82.3% versus 98.8%**. Read the PDF's category meaning before interpreting this difference.
-- `InternalStructure_value = 1`: **100.0% versus 99.7%**. This feature barely varies in this dataset.
+Percentages are calculated separately for **650 Benign** and **346 Malign** nodules.
+For example, 94.6% means about 95 out of every 100 Benign nodules have the stated feature. It is not 94.6% of the whole dataset.
 
-The plots compare percentages within each label group, so the larger Benign group does not dominate just because it has more rows. No single feature fully separates the labels.
+| Feature and code | Meaning | Benign (%) | Malign (%) |
+|---|---|---:|---:|
+| `Spiculation_value = 1` | No spiky edges | 94.6 | 57.5 |
+| `Lobulation_value = 1` | No lobed edge (no rounded bumps) | 86.8 | 50.0 |
+| `Texture_value = 5` | Solid | 84.9 | 78.3 |
+| `Calcification_value = 6` | No calcification | 82.3 | 98.8 |
+| `Margin_value = 5` | Sharp, clear edge | 44.8 | 23.7 |
+| `Subtlety_value = 5` | Obvious / easy to see | 21.7 | 70.5 |
+| `InternalStructure_value = 1` | Soft tissue | 100.0 | 99.7 |
 
-## 4. Check doctors' scores
+**What this shows**
+
+- The Benign group more often has no spikes or lobes, and a sharp edge.
+- The Malign group more often has an obvious appearance and no calcification.
+- Solid texture and soft-tissue structure are common in both groups. `Sphericity` scores also overlap.
+
+The groups share many values, so a single feature cannot fully separate the labels. Category codes such as `Calcification_value = 6` are names represented by numbers, not amounts.
+
+### 3.5 Diameter distribution by diagnosis
+
+The added histogram uses the same bins and percentages within each group. This lets us compare the distributions despite different group sizes.
+
+| Diagnosis | Mean (mm) | Median (mm) | Skew | At or below 10 mm (%) |
+|---|---:|---:|---:|---:|
+| Benign | 6.25 | 5.74 | 3.33 | 94.77 |
+| Malign | 13.28 | 12.46 | 0.66 | 32.37 |
+
+Both distributions have a tail toward large diameters. The Benign group has stronger skew: most nodules are small, but a few large ones pull its mean up. The Malign group is larger on average and covers a wider range of diameters.
+
+At 10 mm, the within-group percentages are very different, but the distributions still overlap. This is an example for understanding the data, not a chosen prediction cutoff. Large sizes are not automatically data errors.
+
+## 4. Annotation and label analysis
 
 ### 4.1 Labels and record counts
 
@@ -151,9 +176,9 @@ This explains the 997 groups versus 996 listed nodules. Including `seriesuid` wh
 
 For example, `LIDC-IDRI-0141`, nodule 1 has scores **1, 2, 5 and 4**. Two are above 3, so its label is `Malign` despite the disagreement. One final label hides these score differences.
 
-## 5. Check 3D images and masks
+## 5. Image and mask analysis
 
-### 5.1 Read and match files
+### 5.1 Read images and masks
 
 All **994 available image-mask pairs** pass the checks used for image analysis. Each pair matches in array shape and spatial position. All available images contain finite values.
 
@@ -169,13 +194,13 @@ The median mask volume is **235.91 mm³**, while the mean is **1,068.58 mm³**. 
 
 Matching shape and position does not prove every mask outline is correct. Review separate parts before removing them.
 
-### 5.3 Image and mask examples
+### 5.3 View nodules and masks
 
 The notebook shows one example from each label group and one mask with separate parts. It displays the slice containing the largest mask area, with a colored mask overlay.
 
 `LIDC-IDRI-0069_R_1` has **two parts in 3D**. One slice may not show both. The examples help us understand the files; they do not check every mask.
 
-### 5.4 Volume and image values by diagnosis
+### 5.4 Compare volume and image values
 
 This comparison uses **650 Benign** and **344 Malign** image-mask pairs. Each nodule contributes one set of measurements.
 
