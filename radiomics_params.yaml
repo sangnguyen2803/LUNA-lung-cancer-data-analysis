@@ -1,0 +1,26 @@
+# Fixed, label-independent baseline. Intensities are stored image units;
+# HU calibration has not been verified for this export.
+imageType:
+  Original: {}
+featureClass:
+  shape: []
+  firstorder: []
+  glcm: []
+  glrlm: []
+  glszm: []
+  gldm: []
+  ngtdm: []
+setting:
+  label: 1
+  binWidth: 25
+  normalize: false
+  resampledPixelSpacing: [1.0, 1.0, 1.0]
+  # Some crops contain only two slices; use one consistent linear protocol.
+  interpolator: sitkLinear
+  padDistance: 5
+  minimumROIDimensions: 2
+  minimumROISize: 8
+  correctMask: false
+  geometryTolerance: 0.000001
+  force2D: false
+  additionalInfo: true

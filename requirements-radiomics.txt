@@ -1,0 +1,18 @@
+# Python 3.9: PyRadiomics 3.1.0 supplies a Windows wheel for this interpreter.
+# Keep NumPy below 2 for the compiled PyRadiomics extension.
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.13.1
+scikit-learn==1.6.1
+SimpleITK==2.4.1
+pyradiomics==3.1.0
+PyWavelets==1.6.0
+PyYAML==6.0.2
+openpyxl==3.1.5
+matplotlib==3.9.4
+joblib==1.4.2
+threadpoolctl==3.7.0
+nbformat==5.10.4
+nbclient==0.10.2
+ipykernel==6.29.5
+jupyterlab==4.3.5
