@@ -2,7 +2,7 @@
 
 This summary follows Sections 1–6 of [the notebook](luna_explore_dataset.ipynb). Mean means average; median means the middle value.
 
-The analysis is a good starting point: it covers table quality, missing files, labels, feature patterns and 3D image-mask checks. It also explains score disagreement and image spacing. Sections 7 and 8 explain which tasks the dataset can support and what to do next. No model performance has been measured yet.
+This EDA covers table quality, missing files, labels, feature patterns and 3D image-mask checks. It also explains score disagreement and image spacing. Sections 7 and 8 describe possible next steps from the EDA stage. The subsequent modeling results are reported separately in [MODEL_RESULTS.md](MODEL_RESULTS.md).
 
 ## 1. Load data
 
