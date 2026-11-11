@@ -13,10 +13,10 @@ Run the notebooks from top to bottom in this order. The EDA notebook can run sep
 | [01_voi_radiomics.ipynb](01_voi_radiomics.ipynb) | Check VOI/mask pairs and extract 107 PyRadiomics features. |
 | [02_malign_benign_modeling.ipynb](02_malign_benign_modeling.ipynb) | Compare metadata, radiomics and combined models; evaluate and save the winner. |
 | [03_feature_engineering_ablation.ipynb](03_feature_engineering_ablation.ipynb) | Check whether eight extra image features improve the models. |
-| [04_f1_optimization.ipynb](04_f1_optimization.ipynb) | Try model and threshold selection for MALIGN F1 using nested cross-validation. |
+| [04_f1_optimization.ipynb](04_f1_optimization.ipynb) | Compare F1/accuracy tuning, SVM, CatBoost, ensembles and native categorical LightGBM. |
 
-All analysis code is in the notebooks. `scripts/execute_pipeline.py` is an optional
-runner; `tests/` contains checks for image handling, patient splits and prediction.
+All analysis code is in the notebooks. `run.py` is an optional
+runner; `test_pipeline.py` contains checks for image handling, patient splits and prediction.
 
 ## Data
 
@@ -63,7 +63,7 @@ In Jupyter, select **LUNA Radiomics (Python 3.9)** and run notebooks 01 through 
 To run the core extraction and modeling notebooks automatically:
 
 ```powershell
-.\.venv-radiomics\Scripts\python.exe scripts\execute_pipeline.py
+.\.venv-radiomics\Scripts\python.exe run.py
 ```
 
 Optional runner flags:
@@ -73,7 +73,7 @@ Optional runner flags:
 | `--smoke` | A quick check on 60 pairs with smaller searches; outputs go to `artifacts/smoke/`. |
 | `--feature-engineering` | Only notebook 03; requires outputs from 01 and 02. |
 | `--include-feature-engineering` | Notebooks 01 through 03. |
-| `--f1` | Only notebook 04; requires outputs from 01 through 03. |
+| `--f1` or `--improve` | Only notebook 04; requires outputs from 01 through 03. |
 | `--include-f1` | All four notebooks. |
 
 Combine `--smoke` with an experiment flag to use smoke outputs. Run the required
@@ -82,7 +82,7 @@ earlier smoke notebooks first. The runner uses its own Python interpreter for Ju
 To run the checks:
 
 ```powershell
-.\.venv-radiomics\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv-radiomics\Scripts\python.exe test_pipeline.py -v
 ```
 
 ## Method and results
@@ -106,11 +106,26 @@ To run the checks:
 - Extra features and F1 tuning did not show consistent improvement. Their scores
   come from development cross-validation; the saved candidates have no new
   independent test evaluation.
+- A further 37-configuration accuracy search reached 86.08% mean outer CV accuracy,
+  versus 88.59% for the nested metadata ROC-AUC reference. Recall and F1 also fell,
+  so the original saved model remains the reference. See [accuracy results](RESULTS.md#accuracy-tuning).
+- A 52-candidate search added CatBoost, calibrated SVM, voting and stacking.
+  Mean outer AUC rose slightly, but accuracy fell. Its frozen voting candidate
+  reached 90.38% on the reused original test, compared with 90.87% for the original model.
+- A follow-up tried eight native categorical LightGBM settings with inner accuracy,
+  recall and AUC limits. It fell back to the original search in all five outer folds.
+  The original Random Forest remains the recommended model. The later candidates
+  are saved separately for reproducibility and are not independent improvements.
 
-Read [EDA_results.md](EDA_results.md), [MODEL_RESULTS.md](MODEL_RESULTS.md),
-[FEATURE_ENGINEERING_RESULTS.md](FEATURE_ENGINEERING_RESULTS.md) and
-[F1_OPTIMIZATION_RESULTS.md](F1_OPTIMIZATION_RESULTS.md) for the full results.
-Plots are also saved in the notebook outputs.
+Read [RESULTS.md](RESULTS.md) for the full results. Plots are also saved in the
+notebook outputs. Fresh reports from notebooks 03 and 04 go into their experiment
+folders under `artifacts/`; `RESULTS.md` keeps the full-run summary in one place.
+
+Notebook 04 uses CatBoost 1.2.10 and LightGBM 4.6.0, pinned in the requirements file.
+Additional model bundles and scores go into `artifacts/model_improvement/` and
+`artifacts/native_boosting/`. Run `python run.py --improve` in the radiomics
+environment to reproduce these comparisons. The native LightGBM candidate is
+development-only; its test set is not evaluated again.
 
 ## Generated files and limits
 

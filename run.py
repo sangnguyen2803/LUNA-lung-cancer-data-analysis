@@ -1,4 +1,4 @@
-"""Execute the pipeline or feature-engineering experiment, preserving cell outputs."""
+"""run notebooks and save their outputs."""
 import argparse
 import asyncio
 import json
@@ -21,10 +21,10 @@ def main():
     notebook_selection = parser.add_mutually_exclusive_group()
     notebook_selection.add_argument("--feature-engineering", action="store_true", help="Run only notebook 03; requires existing 01/02 artifacts")
     notebook_selection.add_argument("--include-feature-engineering", action="store_true", help="Run notebooks 01, 02 and 03 in order")
-    notebook_selection.add_argument("--f1", action="store_true", help="Run only notebook 04; requires existing 01/02/03 artifacts")
+    notebook_selection.add_argument("--f1", "--improve", dest="f1", action="store_true", help="Run model comparisons in notebook 04; requires outputs from 01/02/03")
     notebook_selection.add_argument("--include-f1", action="store_true", help="Run notebooks 01 through 04 in order")
     args = parser.parse_args()
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parent
     if args.smoke:
         os.environ["LUNA_MAX_CASES"] = "60"
         os.environ["LUNA_OUTPUT_SUBDIR"] = "smoke"
@@ -33,7 +33,6 @@ def main():
         for key in ("LUNA_MAX_CASES", "LUNA_OUTPUT_SUBDIR", "LUNA_SMOKE"):
             os.environ.pop(key, None)
 
-    # A temporary kernel points at exactly the interpreter running this script.
     with tempfile.TemporaryDirectory(prefix="luna-kernel-") as directory:
         kernel_dir = Path(directory) / "luna-radiomics-runner"
         kernel_dir.mkdir()
